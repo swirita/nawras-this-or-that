@@ -1,9 +1,11 @@
 import './styles.css';
 import questions from './data/questions.json';
-import { hasReviewedSet } from './core/round.js';
+import { hasReviewedSet, createPlayer, createRound } from './core/round.js';
 import { createLeaderboardStore } from './core/leaderboard.js';
 import { renderLanding } from './screens/landing.js';
 import { renderLeaderboard } from './screens/leaderboard.js';
+import { renderGame } from './screens/game.js';
+import { renderResults } from './screens/results.js';
 import { assetUrl, element } from './ui/dom.js';
 
 const root = document.querySelector('#app');
@@ -12,19 +14,41 @@ const dialog = document.querySelector('#clear-dialog');
 const storage = { getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value), removeItem: key => localStorage.removeItem(key) };
 const store = createLeaderboardStore(storage);
 let name = '', screen = 'landing', currentPlayerId = null, returnFocus;
-// Reviewed content and playable presentation are two independent stage gates.
-const playableIntegrationReady = false;
+let player = null, round = null, completedResult = null, saveError = null, leaderboardReturn = 'landing';
 
 function landing() {
   screen = 'landing';
-  renderLanding(root, { name, questionsReady: hasReviewedSet(questions) && playableIntegrationReady,
-    onName: value => { name = value; }, onStart: () => {}, onLeaderboard: () => leaderboard() });
+  renderLanding(root, { name, questionsReady: hasReviewedSet(questions),
+    onName: value => { name = value; }, onStart: value => {
+      if (screen !== 'landing') return;
+      player = createPlayer(value); currentPlayerId = player.playerId; startRound();
+    }, onLeaderboard: () => { leaderboardReturn = 'landing'; leaderboard(); } });
+}
+function startRound() {
+  screen = 'game'; completedResult = null; saveError = null;
+  round = createRound(player, questions);
+  renderGame(root, { round, onComplete: () => {
+    completedResult = round.result;
+    const outcome = round.saveCompleted(store.saveCompletedResult);
+    saveError = outcome?.error;
+    results();
+  } });
+}
+function results() {
+  screen = 'results';
+  const data = store.read();
+  renderResults(root, { result: completedResult, results: data.results, error: saveError || data.error,
+    onPlayAgain: () => { if (screen === 'results') startRound(); },
+    onNextPlayer: () => { name = ''; player = null; currentPlayerId = null; round = null; completedResult = null; landing(); document.querySelector('#player-name').focus(); },
+    onLeaderboard: () => { leaderboardReturn = 'results'; leaderboard(); }
+  });
 }
 function leaderboard(options = {}) {
   screen = 'leaderboard';
   currentPlayerId = options.currentPlayerId ?? currentPlayerId;
   renderLeaderboard(root, { ...store.read(), currentPlayerId, onBack: () => {
-    landing(); document.querySelector('.top-right').focus();
+    if (leaderboardReturn === 'results') results();
+    else { landing(); document.querySelector('.top-right').focus(); }
   }, onClear: trigger => {
     returnFocus = trigger;
     document.querySelector('#clear-error').hidden = true;
@@ -59,7 +83,13 @@ dialog.addEventListener('close', () => {
   if (returnFocus?.isConnected && !returnFocus.disabled) returnFocus.focus();
 });
 window.addEventListener('storage', event => {
-  if (screen === 'leaderboard' && !dialog.open && (event.key === null || event.key === 'nawras-this-or-that:leaderboard:v1')) leaderboard();
+  if (!dialog.open && (event.key === null || event.key?.startsWith('nawras-this-or-that:leaderboard:'))) {
+    if (screen === 'leaderboard') leaderboard();
+    if (screen === 'results') results();
+  }
+});
+document.addEventListener('keydown', event => {
+  if (event.repeat && event.target.closest('button') && ['Enter', ' '].includes(event.key)) event.preventDefault();
 });
 document.addEventListener('keydown', async event => {
   if (event.key.toLowerCase() !== 'f' || event.repeat || event.ctrlKey || event.metaKey || event.altKey || dialog.open) return;

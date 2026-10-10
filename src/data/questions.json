@@ -1,1 +1,162 @@
-[]
+[
+  {
+    "id": "language-release",
+    "prompt": "أي لغة برمجة أُطلقت أولاً؟",
+    "options": [
+      {
+        "id": "language-release:cpp",
+        "label": "C++"
+      },
+      {
+        "id": "language-release:python",
+        "label": "Python"
+      }
+    ],
+    "correctOptionId": "language-release:cpp",
+    "explanation": "أُطلقت C++ تجارياً عام 1985، وPython عام 1991."
+  },
+  {
+    "id": "operating-system-age",
+    "prompt": "أيهما أقدم؟",
+    "options": [
+      {
+        "id": "operating-system-age:windows95",
+        "label": "Windows 95"
+      },
+      {
+        "id": "operating-system-age:linux",
+        "label": "Linux"
+      }
+    ],
+    "correctOptionId": "operating-system-age:linux",
+    "explanation": "ظهر Linux عام 1991، وWindows 95 عام 1995."
+  },
+  {
+    "id": "browser-release",
+    "prompt": "أي متصفح أُطلق أولاً؟",
+    "options": [
+      {
+        "id": "browser-release:chrome",
+        "label": "Chrome"
+      },
+      {
+        "id": "browser-release:firefox",
+        "label": "Firefox"
+      }
+    ],
+    "correctOptionId": "browser-release:firefox",
+    "explanation": "أُطلق Firefox 1.0 عام 2004، وChrome عام 2008."
+  },
+  {
+    "id": "resolution-pixels",
+    "prompt": "أي دقة تحتوي على بكسلات أكثر؟",
+    "options": [
+      {
+        "id": "resolution-pixels:1080p",
+        "label": "1080p"
+      },
+      {
+        "id": "resolution-pixels:4k-uhd",
+        "label": "4K UHD"
+      }
+    ],
+    "correctOptionId": "resolution-pixels:4k-uhd",
+    "explanation": "تحتوي 4K UHD على أربعة أضعاف عدد بكسلات 1080p."
+  },
+  {
+    "id": "storage-access",
+    "prompt": "أي وحدة تخزين عادةً أسرع في الوصول إلى الملفات؟",
+    "options": [
+      {
+        "id": "storage-access:ssd",
+        "label": "SSD"
+      },
+      {
+        "id": "storage-access:hdd",
+        "label": "HDD"
+      }
+    ],
+    "correctOptionId": "storage-access:ssd",
+    "explanation": "يستخدم SSD ذاكرة إلكترونية، ويصل إلى الملفات عادةً أسرع من القرص الميكانيكي HDD."
+  },
+  {
+    "id": "memory-access",
+    "prompt": "أيهما عادةً أسرع للوصول إلى البيانات أثناء تشغيل البرامج؟",
+    "options": [
+      {
+        "id": "memory-access:ram",
+        "label": "RAM"
+      },
+      {
+        "id": "memory-access:ssd",
+        "label": "SSD"
+      }
+    ],
+    "correctOptionId": "memory-access:ram",
+    "explanation": "الوصول إلى البيانات الموجودة في RAM أسرع عادةً من الوصول إليها على SSD."
+  },
+  {
+    "id": "connection-speed",
+    "prompt": "أي سرعة اتصال أعلى؟",
+    "options": [
+      {
+        "id": "connection-speed:100mbps",
+        "label": "100 Mbps"
+      },
+      {
+        "id": "connection-speed:1gbps",
+        "label": "1 Gbps"
+      }
+    ],
+    "correctOptionId": "connection-speed:1gbps",
+    "explanation": "تساوي 1 Gbps سرعة 1000 Mbps، أي عشرة أضعاف 100 Mbps."
+  },
+  {
+    "id": "usb-speed",
+    "prompt": "أي إصدار USB يدعم سرعة نقل قصوى أعلى؟",
+    "options": [
+      {
+        "id": "usb-speed:usb2",
+        "label": "USB 2.0"
+      },
+      {
+        "id": "usb-speed:usb3",
+        "label": "USB 3.0"
+      }
+    ],
+    "correctOptionId": "usb-speed:usb3",
+    "explanation": "يدعم USB 3.0 سرعة 5 Gbps، مقابل 480 Mbps لـUSB 2.0."
+  },
+  {
+    "id": "binary-value",
+    "prompt": "أي عدد ثنائي أكبر؟",
+    "options": [
+      {
+        "id": "binary-value:binary10",
+        "label": "1010"
+      },
+      {
+        "id": "binary-value:binary12",
+        "label": "1100"
+      }
+    ],
+    "correctOptionId": "binary-value:binary12",
+    "explanation": "يساوي 1010 العدد 10، ويساوي 1100 العدد 12."
+  },
+  {
+    "id": "ascii-value",
+    "prompt": "أي حرف قيمته أعلى في ASCII؟",
+    "options": [
+      {
+        "id": "ascii-value:uppercase-a",
+        "label": "A"
+      },
+      {
+        "id": "ascii-value:lowercase-a",
+        "label": "a"
+      }
+    ],
+    "correctOptionId": "ascii-value:lowercase-a",
+    "explanation": "قيمة A هي 65، وقيمة a هي 97."
+  }
+]

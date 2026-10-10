@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 const key = 'nawras-this-or-that:leaderboard:v1';
-const records = () => Array.from({length:25}, (_,i) => ({playerId:`p${i}`, resultId:`r${i}`, name:i===0?'<img src=x onerror=alert(1)>':`Player ${i}`, score:i<4?100-i*10:60, answerTimeMs:i===5?1004:1000+i}));
+const records = () => Array.from({length:25}, (_,i) => ({playerId:`p${i}`, resultId:`r${i}`, name:i===0?'<img src=x onerror=alert(1)>':`Player ${i}`, score:i<4?100-i*10:60, answerTimeMs:i===5?1040:1000+i*10}));
 test('landing, name entry, empty leaderboard and base assets', async ({page}) => {
   const errors=[]; page.on('pageerror', error=>errors.push(error.message));
   await page.goto('./');
@@ -12,7 +12,7 @@ test('landing, name entry, empty leaderboard and base assets', async ({page}) =>
   await expect(page.getByRole('columnheader')).toHaveText(['Rank','Player','Score','Answer Time']);
   await page.getByRole('button',{name:'← Back'}).click();
   await expect(page.getByRole('textbox')).toHaveValue('Nawras');
-  await expect(page.getByRole('button',{name:'Start',exact:true})).toBeDisabled();
+  await expect(page.getByRole('button',{name:'Start',exact:true})).toBeEnabled();
   const assets=await page.evaluate(()=> [...document.images].map(img=>({src:img.src,valid:img.complete && img.naturalWidth>0})));
   expect(assets.every(img=>img.valid && img.src.includes('/nawras-this-or-that/assets/'))).toBeTruthy();
   expect((await page.request.get('assets/pixel-particles.png')).ok()).toBeTruthy();

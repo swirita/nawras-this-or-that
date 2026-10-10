@@ -1,8 +1,30 @@
-// Stage two integration keeps identity across Play Again; Next Player resets it.
-export function resultsActions(player, { startRound, showLanding, showLeaderboard }) {
-  return {
-    playAgain: () => startRound(player),
-    nextPlayer: () => showLanding({ resetPlayer: true }),
-    leaderboard: () => showLeaderboard({ currentPlayerId: player.playerId })
+import { element, logo } from '../ui/dom.js';
+import { formatTime } from '../core/leaderboard.js';
+import { createLeaderboardPanel } from './leaderboard.js';
+
+export function renderResults(root, { result, results, error, onPlayAgain, onNextPlayer, onLeaderboard }) {
+  const best = results.find(row => row.playerId === result.playerId);
+  const title = element('h1', { text: 'Round complete', tabindex: '-1' });
+  const button = (text, action, className) => {
+    const node = element('button', { text, className });
+    node.addEventListener('click', event => { if (event.detail <= 1) action(); });
+    return node;
   };
+  const metric = (label, value) => element('div', {}, [element('span', { text: label }), element('strong', { text: value, dir: 'ltr' })]);
+  const section = element('section', { className: 'results-screen' }, [
+    logo(), title, element('bdi', { className: 'result-player', dir: 'auto', text: result.name }),
+    element('div', { className: 'result-metrics' }, [
+      metric('Score', `${result.score} / 100`), metric('Correct answers', `${result.score / 10} / 10`), metric('Answer Time', formatTime(result.answerTimeCs))
+    ]),
+    element('p', { className: 'best-note', text: best && best.resultId !== result.resultId
+      ? `Leaderboard shows your best: ${best.score} / 100 · ${formatTime(best.answerTimeCs)}`
+      : best ? 'Leaderboard · Your best result' : 'Leaderboard' }),
+    createLeaderboardPanel({ results, currentPlayerId: result.playerId }),
+    element('div', { className: 'results-actions' }, [
+      button('Play Again', onPlayAgain, 'gold'), button('Next Player', onNextPlayer), button('Full Leaderboard', onLeaderboard)
+    ])
+  ]);
+  if (error) section.append(element('p', { className: 'status', role: 'alert', text: error }));
+  root.replaceChildren(section);
+  title.focus({ preventScroll: true });
 }

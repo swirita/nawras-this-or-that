@@ -4,20 +4,22 @@ export function createPlayer(name) {
   return { playerId: crypto.randomUUID(), name: trimmed };
 }
 
-// Content contract for stage two. Review approval belongs to each selected question.
 export function hasReviewedSet(questions) {
   if (!Array.isArray(questions) || questions.length !== 10) return false;
   const ids = new Set();
+  const optionIds = new Set();
   return questions.every(q => {
-    if (!q || typeof q.id !== 'string' || !q.id || ids.has(q.id)) return false;
+    if (!q || typeof q.id !== 'string' || !q.id.trim() || ids.has(q.id)) return false;
     ids.add(q.id);
-    return q.reviewed === true && typeof q.prompt === 'string' && q.prompt.trim()
-      && typeof q.explanation === 'string' && q.explanation.trim()
-      && ['ar', 'en'].includes(q.language)
-      && Array.isArray(q.answers) && q.answers.length === 2
-      && q.answers.every(a => typeof a.id === 'string' && a.id && typeof a.text === 'string' && a.text.trim())
-      && q.answers[0].id !== q.answers[1].id
-      && q.answers.some(a => a.id === q.correctAnswerId);
+    return typeof q.prompt === 'string' && !!q.prompt.trim()
+      && typeof q.explanation === 'string' && !!q.explanation.trim()
+      && Array.isArray(q.options) && q.options.length === 2
+      && q.options.every(a => {
+        if (typeof a.id !== 'string' || !a.id.trim() || optionIds.has(a.id) || typeof a.label !== 'string' || !a.label.trim()) return false;
+        optionIds.add(a.id); return true;
+      })
+      && q.options[0].id !== q.options[1].id
+      && q.options.some(a => a.id === q.correctOptionId);
   });
 }
 
@@ -30,49 +32,41 @@ export function shuffle(values, random = Math.random) {
   return copy;
 }
 
-// Presentation calls showQuestion only once the question is actually visible.
-// next() returns a question but does not start its timer; feedback has no timer.
 export function createRound(player, questions, { now = () => performance.now(), random = Math.random, resultId = crypto.randomUUID() } = {}) {
-  if (!hasReviewedSet(questions)) throw new TypeError('Ten reviewed questions required');
-  const order = shuffle(questions, random).map(q => ({ ...q, answers: shuffle(q.answers, random) }));
+  if (!hasReviewedSet(questions)) throw new TypeError('Ten valid questions required');
+  const order = shuffle(questions, random).map(q => ({ ...q, options: shuffle(q.options, random) }));
   let index = 0, score = 0, totalTime = 0, startedAt = null, answered = false, completed = false, saved = false;
+  const elapsed = () => totalTime + (startedAt === null ? 0 : Math.max(0, now() - startedAt));
   return {
     get question() { return completed ? null : order[index]; },
+    get progress() { return index + 1; },
+    get score() { return score; },
+    get answerTimeCs() { return Math.round(elapsed() / 10); },
     showQuestion() {
       if (!completed && !answered && startedAt === null) startedAt = now();
     },
-    hideQuestion() {
-      if (startedAt !== null) {
-        totalTime += Math.max(0, now() - startedAt);
-        startedAt = null;
-      }
-    },
-    answer(answerId) {
+    // Background tabs keep counting; presentation never pauses an active question.
+    answer(optionId) {
       if (completed || answered || startedAt === null) return null;
       const question = order[index];
-      if (!question.answers.some(a => a.id === answerId)) return null;
-      totalTime += Math.max(0, now() - startedAt);
-      startedAt = null;
-      answered = true;
-      const correct = answerId === question.correctAnswerId;
+      if (!question.options.some(a => a.id === optionId)) return null;
+      totalTime = elapsed(); startedAt = null; answered = true;
+      const correct = optionId === question.correctOptionId;
       if (correct) score += 10;
-      return { correct, correctAnswerId: question.correctAnswerId, explanation: question.explanation };
+      return { correct, correctOptionId: question.correctOptionId, explanation: question.explanation };
     },
     next() {
       if (!answered || completed) return null;
-      index++;
-      completed = index === order.length;
-      answered = false;
+      index++; completed = index === order.length; answered = false;
       return completed ? null : order[index];
     },
     get result() {
-      return completed ? { ...player, resultId, score, answerTimeMs: Math.round(totalTime) } : null;
+      return completed ? { ...player, resultId, score, answerTimeCs: Math.round(totalTime / 10) } : null;
     },
     saveCompleted(save) {
       if (!completed || saved) return null;
-      const outcome = save(this.result);
-      if (!outcome?.error) saved = true;
-      return outcome;
+      saved = true;
+      return save(this.result);
     }
   };
 }
