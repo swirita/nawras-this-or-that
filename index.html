@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#eaf6fd" />
+    <title>Nawras أيّهما؟</title>
+    <link rel="icon" href="%BASE_URL%assets/branding/nawras-small.png" />
+  </head>
+  <body>
+    <div class="particles" aria-hidden="true"></div>
+    <main id="app"></main>
+    <dialog id="clear-dialog" aria-labelledby="clear-title" aria-describedby="clear-description">
+      <h2 id="clear-title">Clear leaderboard?</h2>
+      <p id="clear-description">All results for Nawras أيّهما؟ will be removed.</p>
+      <div class="dialog-actions">
+        <button id="cancel-clear" autofocus>Cancel</button>
+        <button id="confirm-clear" class="gold">Clear</button>
+      </div>
+      <p id="clear-error" class="status" role="alert" hidden></p>
+    </dialog>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

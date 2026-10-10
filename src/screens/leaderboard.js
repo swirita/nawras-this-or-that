@@ -1,0 +1,37 @@
+import { rankResults, formatTime } from '../core/leaderboard.js';
+import { element, logo } from '../ui/dom.js';
+
+export function renderLeaderboard(root, { results, error, currentPlayerId, onBack, onClear }) {
+  const back = element('button', { text: '← Back', className: 'back' });
+  back.addEventListener('click', onBack);
+  const clear = element('button', { text: 'Clear Leaderboard', className: 'clear-button' });
+  clear.disabled = results.length === 0;
+  clear.addEventListener('click', () => onClear(clear));
+  const body = element('tbody');
+  let currentRow;
+  for (const result of rankResults(results)) {
+    const current = result.playerId === currentPlayerId;
+    const row = element('tr', { className: `${result.rank <= 5 ? `top-rank rank-${result.rank}` : ''} ${current ? 'current-player' : ''}`, 'data-player-id': result.playerId }, [
+      element('td', {}, [element('span', { className: 'rank-badge', text: result.rank })]),
+      element('td', { className: 'player-cell' }, [element('bdi', { dir: 'auto', text: result.name })]),
+      element('td', { text: result.score }), element('td', { text: formatTime(result.answerTimeMs) })
+    ]);
+    if (current) { row.setAttribute('aria-current', 'true'); currentRow = row; }
+    body.append(row);
+  }
+  if (!results.length) body.append(element('tr', {}, [element('td', { colspan: '4', className: 'empty-state', text: 'No completed rounds yet.' })]));
+  const table = element('table', { 'aria-label': 'Leaderboard' }, [
+    element('thead', {}, [element('tr', {}, ['Rank', 'Player', 'Score', 'Answer Time'].map(text => element('th', { scope: 'col', text })))]), body
+  ]);
+  const panel = element('div', { className: 'leaderboard-panel', tabindex: '0', 'aria-label': 'Scrollable leaderboard' }, [table]);
+  const section = element('section', { className: 'leaderboard-screen' }, [
+    element('div', { className: 'leaderboard-header' }, [back, logo()]),
+    element('h1', { text: 'Leaderboard', tabindex: '-1' }), panel, clear
+  ]);
+  if (error) section.append(element('p', { className: 'status', role: 'status', text: error }));
+  root.replaceChildren(section);
+  section.querySelector('h1').focus({ preventScroll: true });
+  if (currentRow) requestAnimationFrame(() => {
+    panel.scrollTop = currentRow.offsetTop - panel.clientHeight / 2 + currentRow.clientHeight / 2;
+  });
+}

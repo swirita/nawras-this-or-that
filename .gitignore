@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*
+playwright-report/
+test-results/
+.checks/
