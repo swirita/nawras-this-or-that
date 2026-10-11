@@ -17,7 +17,7 @@ button.gold:disabled { opacity: .65; filter: saturate(.65); }
 .landing { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 90px 24px 60px; text-align: center; }
 .logo { display: block; width: 290px; height: auto; object-fit: contain; }
 .game-title { margin: 12px 0 30px; line-height: 1.03; display: flex; flex-direction: column; }
-.english-title { font-size: clamp(56px, 6.6vw, 88px); letter-spacing: 2px; text-transform: uppercase; font-weight: 900; text-shadow: 0 1px 0 #fff, 0 2px 0 #fff, 0 3px 0 #fff, 0 4px 0 #fff, 0 5px 0 #fff, 0 6px 0 #fff, 0 7px 0 #fff, 0 8px 0 #fff; }
+.english-title { font-size: clamp(56px, 6.6vw, 88px); letter-spacing: 2px; text-transform: uppercase; font-weight: 900; text-shadow: 0 1px 0 #fff, 0 2px 0 #fff, 0 3px 0 #fff; }
 .arabic-title { color: #0781a1; font-size: clamp(62px, 7vw, 94px); font-weight: 800; text-shadow: 0 3px 0 #0b516c; line-height: 1.28; }
 .name-form { display: flex; flex-direction: column; align-items: center; gap: 12px; width: min(100%, 300px); }
 .name-form label { font-size: 12px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #355f78; }
@@ -60,18 +60,17 @@ dialog h2 { margin: 0 0 14px; font-size: 25px; } dialog p { line-height: 1.6; ma
 .dialog-close { position: absolute; right: 10px; top: 10px; padding: 0; min-height: 32px; width: 32px; font-size: 23px; box-shadow: none; }
 #reset-dialog { padding-top: 44px; text-align: center; }
 .reset-actions { justify-content: center; margin-top: 24px; flex-wrap: wrap; }
-.modal-open { overflow: hidden; } .modal-open .particles i { animation-play-state: paused; }
-.question-content { text-align: start; } .question-content bdi { unicode-bidi: isolate; }
+.modal-open { overflow: hidden; }
+.modal-open .particles i, .page-hidden .particles i { animation-play-state: paused; }
 .game-screen, .results-screen { width: min(100%, 1000px); margin: auto; padding: 20px 32px; min-height: 100svh; }
 .game-screen { display: flex; flex-direction: column; }
 .card-space { position: relative; flex: 1; min-height: 548px; display: grid; align-items: center; padding: 18px 0; }
-.question-panel.card-scene { width: 100%; height: 440px; padding: 0; background: none; border: 0; box-shadow: none; perspective: 1400px; }
+.question-panel.card-scene { width: 100%; height: 440px; perspective: 1400px; }
 .flip-card { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transform-origin: center center; }
 .card-face { position: absolute; inset: 0; padding: 32px; border: 1px solid #aac8df; border-radius: 18px; background: #ffffffa6; box-shadow: 0 16px 48px #44799e16; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; text-align: center; }
 .card-front { transform: rotateX(0deg); }
 .card-back { transform: rotateX(180deg); }
 .card-face[inert] { pointer-events: none; }
-.card-back.feedback { min-height: 0; padding: 32px; }
 .reveal-answer { display: block; font-size: clamp(30px, 4vw, 44px); font-weight: 800; color: #087b98; margin: 14px 0 20px; }
 .card-back .next { align-self: center; margin-top: 10px; }
 .mute-button { position: fixed; right: 18px; bottom: 18px; z-index: 3; padding: 8px; width: 42px; min-height: 42px; font-size: 18px; background: #ffffffb8; }
@@ -82,7 +81,6 @@ dialog h2 { margin: 0 0 14px; font-size: 25px; } dialog p { line-height: 1.6; ma
 .game-stat { display: flex; flex-direction: column; gap: 6px; font-variant-numeric: tabular-nums; }
 .game-stat:nth-child(3) { text-align: right; } .game-stat span, .result-metrics span { color: #49667d; font-size: 13px; font-weight: 700; }
 .game-stat strong { font-size: 25px; } .progress { text-align: center; color: #49667d; font-weight: 700; margin: 8px 0 18px; }
-.question-panel { padding: 22px 30px; border: 1px solid #aac8df; border-radius: 18px; background: #ffffffa6; box-shadow: 0 16px 48px #44799e16; }
 .question-panel h1 { min-height: 116px; padding: 15px 0; text-align: center; font-size: clamp(27px, 3vw, 38px); line-height: 1.55; margin: 0 0 20px; }
 .answer-options { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .answer-button { min-height: 92px; font-size: 27px; border-color: #95b8d8; display: grid; place-items: center; text-align: center; line-height: 1.3; }
@@ -90,7 +88,6 @@ dialog h2 { margin: 0 0 14px; font-size: 25px; } dialog p { line-height: 1.6; ma
 .answer-button:disabled { opacity: 1; cursor: default; }
 .correct-answer, .correct-answer:disabled { background: #d9f3e8; border: 2px solid #2b8b70; color: #165540; }
 .wrong-answer, .wrong-answer:disabled { background: #fbe5e7; border: 2px solid #bd6776; color: #8b3145; }
-.feedback { min-height: 204px; padding-top: 20px; text-align: center; }
 .feedback h2 { font-size: 21px; margin: 0 0 8px; } .feedback p { font-size: 18px; line-height: 1.7; margin: 0 0 14px; }
 .correct-message { color: #165540; } .wrong-message { color: #8b3145; } .next { min-width: 120px; }
 .results-screen { display: flex; flex-direction: column; align-items: center; text-align: center; }
@@ -105,16 +102,14 @@ dialog h2 { margin: 0 0 14px; font-size: 25px; } dialog p { line-height: 1.6; ma
   .game-screen, .results-screen { padding: 16px; }
   .question-panel.card-scene { height: 560px; }
   .card-space { min-height: 668px; }
-  .card-face, .card-back.feedback { padding: 24px 18px; }
+  .card-face { padding: 24px 18px; }
   .mute-button { right: 10px; bottom: 10px; }
   .game-header { gap: 8px; grid-template-columns: 1fr 1fr; }
   .game-header .logo { grid-column: 1 / -1; grid-row: 1; width: 190px; }
   .game-stat strong { font-size: 22px; }
-  .question-panel { padding: 20px 16px; } .question-panel h1 { min-height: 150px; font-size: 28px; }
+  .question-panel h1 { min-height: 150px; font-size: 28px; }
   .answer-options { grid-template-columns: 1fr; gap: 12px; } .answer-button { min-height: 82px; font-size: 24px; }
-  .feedback { min-height: 240px; } .result-metrics { gap: 8px; } .result-metrics > div { padding: 12px 6px; } .result-metrics strong { font-size: 20px; }
-}
-@media (max-width: 600px) {
+  .result-metrics { gap: 8px; } .result-metrics > div { padding: 12px 6px; } .result-metrics strong { font-size: 20px; }
   .top-right { top: 16px; right: 16px; font-size: 14px; }
   .landing { padding-top: 100px; } .logo { width: 250px; }
   .leaderboard-screen { padding: 18px 14px; } .leaderboard-header { justify-content: flex-end; } .leaderboard-header .logo { width: 155px; }

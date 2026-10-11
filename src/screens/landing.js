@@ -1,8 +1,7 @@
-import { element, logo } from '../ui/dom.js';
+import { element, logo, actionButton } from '../ui/dom.js';
 
 export function renderLanding(root, { name, questionsReady, onName, onStart, onLeaderboard }) {
-  const leaderboard = element('button', { className: 'top-right', text: 'Leaderboard' });
-  leaderboard.addEventListener('click', onLeaderboard);
+  const leaderboard = actionButton('Leaderboard', onLeaderboard, 'top-right');
   const input = element('input', { id: 'player-name', name: 'player-name', type: 'text', required: '', maxlength: '80', autocomplete: 'off', dir: 'auto', 'aria-label': 'Player name' });
   input.value = name;
   const start = element('button', { className: 'gold start', type: 'submit', text: 'Start' });

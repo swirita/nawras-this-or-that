@@ -18,7 +18,6 @@ export function hasReviewedSet(questions) {
         if (typeof a.id !== 'string' || !a.id.trim() || optionIds.has(a.id) || typeof a.label !== 'string' || !a.label.trim()) return false;
         optionIds.add(a.id); return true;
       })
-      && q.options[0].id !== q.options[1].id
       && q.options.some(a => a.id === q.correctOptionId);
   });
 }

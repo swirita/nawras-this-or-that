@@ -1,5 +1,5 @@
 import { rankResults, formatTime } from '../core/leaderboard.js';
-import { element, logo } from '../ui/dom.js';
+import { element, logo, actionButton } from '../ui/dom.js';
 
 export function createLeaderboardPanel({ results, currentPlayerId }) {
   const body = element('tbody');
@@ -27,15 +27,13 @@ export function createLeaderboardPanel({ results, currentPlayerId }) {
 }
 
 export function createClearButton(results, onClear) {
-  const clear = element('button', { text: 'Clear Leaderboard', className: 'clear-button', type: 'button' });
+  const clear = actionButton('Clear Leaderboard', onClear, 'clear-button');
   clear.disabled = results.length === 0;
-  clear.addEventListener('click', event => { if (event.detail <= 1) onClear(clear); });
   return clear;
 }
 
 export function renderLeaderboard(root, { results, error, currentPlayerId, onBack, onClear }) {
-  const back = element('button', { text: '← Back', className: 'back' });
-  back.addEventListener('click', onBack);
+  const back = actionButton('← Back', onBack, 'back');
   const clear = createClearButton(results, onClear);
   const section = element('section', { className: 'leaderboard-screen' }, [
     element('div', { className: 'leaderboard-header' }, [back, logo()]),

@@ -1,12 +1,12 @@
 export const AUDIO_KEY = 'nawras-this-or-that:muted:v1';
 
 export function createAudio({ storage, contextFactory = () => new (window.AudioContext || window.webkitAudioContext)() }) {
-  let context, muted = false, voices = [], generation = 0;
+  let context, muted = false;
+  const voices = new Set();
   try { muted = storage.getItem(AUDIO_KEY) === 'true'; } catch {}
   function stop() {
-    generation++;
     for (const source of voices) { try { source.stop(); } catch {} }
-    voices = [];
+    voices.clear();
   }
   function init() {
     try {
@@ -21,7 +21,7 @@ export function createAudio({ storage, contextFactory = () => new (window.AudioC
     gain.gain.linearRampToValueAtTime(volume, start + .015);
     gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
     source.connect(gain); gain.connect(context.destination);
-    voices.push(source); source.onended = () => { source.disconnect(); gain.disconnect(); };
+    voices.add(source); source.onended = () => { voices.delete(source); source.disconnect(); gain.disconnect(); };
     source.start(start); source.stop(start + duration);
   }
   // Each action owns one short, sequential phrase. New actions cancel old voices.
@@ -37,7 +37,6 @@ export function createAudio({ storage, contextFactory = () => new (window.AudioC
     else if (kind === 'complete') {
       tone(660, start + .06, .10); tone(880, start + .17, .10); tone(1100, start + .28, .20);
     }
-    return generation;
   }
   function toggle() {
     muted = !muted; stop();

@@ -48,12 +48,16 @@ test('actual answer glyphs are centered, including Linux, Windows 95 and wrapped
 
 test('both animated flips start no sounds and cancel notes; correct and wrong sounds follow reveal', async ({ page }) => {
   await page.addInitScript(() => {
-    const Native = window.AudioContext; window.audioStarts = []; window.audioStops = [];
+    const Native = window.AudioContext; window.audioStarts = []; window.activeSources = new Set();
     window.AudioContext = class extends Native {
       createOscillator() {
         const o = super.createOscillator(), start = o.start.bind(o), stop = o.stop.bind(o);
-        o.start = (...args) => { audioStarts.push(performance.now()); return start(...args); };
-        o.stop = (...args) => { audioStops.push({ at: performance.now(), immediate: !args.length }); return stop(...args); };
+        o.start = (...args) => { activeSources.add(o); audioStarts.push(performance.now()); return start(...args); };
+        o.stop = (...args) => {
+          if (!args.length) activeSources.delete(o);
+          return stop(...args);
+        };
+        o.addEventListener('ended', () => activeSources.delete(o));
         return o;
       }
       createBufferSource() { throw Error('No flip/noise source is allowed'); }
@@ -71,11 +75,10 @@ test('both animated flips start no sounds and cancel notes; correct and wrong so
     expect(await page.evaluate(() => audioStarts.length)).toBe(before);
     await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeEnabled();
     expect(await page.evaluate(() => audioStarts.length)).toBe(before + (correct ? 3 : 2));
-    const stops = await page.evaluate(() => audioStops.filter(s => s.immediate).length);
     await page.getByRole('button', { name: 'Next', exact: true }).click();
     await page.waitForTimeout(300);
     expect(await page.evaluate(() => audioStarts.length)).toBe(before + (correct ? 3 : 2));
-    expect(await page.evaluate(() => audioStops.filter(s => s.immediate).length)).toBeGreaterThan(stops);
+    expect(await page.evaluate(() => activeSources.size)).toBe(0);
     await expect(page.locator('.answer-button').first()).toBeEnabled();
   }
 });

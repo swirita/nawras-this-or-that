@@ -1,15 +1,10 @@
-import { element, logo } from '../ui/dom.js';
+import { element, logo, actionButton } from '../ui/dom.js';
 import { formatTime } from '../core/leaderboard.js';
 import { createLeaderboardPanel, createClearButton } from './leaderboard.js';
 
 export function renderResults(root, { result, results, error, onPlayAgain, onNextPlayer, onLeaderboard, onClear }) {
   const best = results.find(row => row.playerId === result.playerId);
   const title = element('h1', { text: 'Round complete', tabindex: '-1' });
-  const button = (text, action, className) => {
-    const node = element('button', { text, className });
-    node.addEventListener('click', event => { if (event.detail <= 1) action(); });
-    return node;
-  };
   const metric = (label, value) => element('div', {}, [element('span', { text: label }), element('strong', { text: value, dir: 'ltr' })]);
   const section = element('section', { className: 'results-screen' }, [
     logo(), title, element('bdi', { className: 'result-player', dir: 'auto', text: result.name }),
@@ -22,7 +17,7 @@ export function renderResults(root, { result, results, error, onPlayAgain, onNex
     createLeaderboardPanel({ results, currentPlayerId: result.playerId }),
     createClearButton(results, onClear),
     element('div', { className: 'results-actions' }, [
-      button('Play Again', onPlayAgain, 'gold'), button('Next Player', onNextPlayer), button('Full Leaderboard', onLeaderboard)
+      actionButton('Play Again', onPlayAgain, 'gold'), actionButton('Next Player', onNextPlayer), actionButton('Full Leaderboard', onLeaderboard)
     ])
   ]);
   if (error) section.append(element('p', { className: 'status', role: 'alert', text: error }));

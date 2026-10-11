@@ -5,6 +5,7 @@ import { createAudio, AUDIO_KEY } from '../src/ui/audio.js';
 function harness(initial = false) {
   const events = [], data = new Map([[AUDIO_KEY, String(initial)]]);
   let instances = 0;
+  const sources = [];
   const param = () => ({ value: 0, setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {} });
   const source = kind => ({
     frequency: param(), connect() {}, disconnect() {},
@@ -12,15 +13,12 @@ function harness(initial = false) {
     stop(time) { events.push({kind:'stop', time}); }
   });
   const context = {
-    state:'running', currentTime:10, sampleRate:1000, destination:{},
-    createOscillator:()=>source('tone'),
-    createBufferSource:()=>source('air'),
-    createBuffer:()=>({getChannelData:()=>new Float32Array(180)}),
-    createBiquadFilter:()=>({frequency:param(),Q:param(),connect(){},disconnect(){}}),
+    state:'running', currentTime:10, destination:{},
+    createOscillator:()=>{ const node=source('tone'); sources.push(node); return node; },
     createGain:()=>({gain:param(),connect(){},disconnect(){}})
   };
   const audio=createAudio({storage:{getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v)},contextFactory:()=>{instances++;return context;}});
-  return {audio,events,data,instances:()=>instances};
+  return {audio,events,data,sources,instances:()=>instances};
 }
 test('audio initializes once; correct phrase retains click and rising notes without flip noise',()=>{
   const {audio,events,instances}=harness();
@@ -52,4 +50,14 @@ test('mute cancels voices and prevents sound; preference persists and unmute wor
 test('unsupported audio and inaccessible storage never block gameplay',()=>{
   const audio=createAudio({storage:{getItem(){throw Error();},setItem(){throw Error();}},contextFactory(){throw Error();}});
   assert.doesNotThrow(()=>{audio.init();audio.play('correct');audio.toggle();audio.toggle();});
+});
+
+test('finished audio sources are released; active phrases are cancelled before reuse',()=>{
+  const {audio,events,sources}=harness(); audio.init(); audio.play('correct');
+  for (const source of sources) source.onended();
+  const finished=events.length; audio.stop(); assert.equal(events.length,finished);
+  audio.play('wrong');
+  const active=events.filter(e=>e.kind==='stop' && e.time===undefined).length;
+  audio.stop();
+  assert.equal(events.filter(e=>e.kind==='stop' && e.time===undefined).length,active+2);
 });

@@ -6,6 +6,10 @@ dist/
 *.pem
 *.key
 credentials*
+.npmrc
+*.p12
+*.pfx
+*.log
 playwright-report/
 test-results/
 .checks/

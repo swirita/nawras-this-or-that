@@ -2,7 +2,7 @@ import { element, logo } from '../ui/dom.js';
 import { formatTime } from '../core/leaderboard.js';
 
 // Plain text plus isolated Latin runs; data never becomes HTML.
-export function arabicText(tag, text, attributes = {}) {
+function arabicText(tag, text, attributes = {}) {
   const node = element(tag, { ...attributes, lang: 'ar', dir: 'rtl' });
   for (const part of text.split(/([A-Za-z0-9][A-Za-z0-9 .+/-]*)/g)) {
     if (/^[A-Za-z0-9]/.test(part)) {
@@ -15,6 +15,7 @@ export function arabicText(tag, text, attributes = {}) {
 
 export function renderGame(root, { round, onComplete, onReset, audio }) {
   let live = true, phase = 'entering', interval, question, buttons = [];
+  const pendingFrames = new Map();
   const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const score = element('strong', { text: round.score, 'data-testid': 'score' });
   const time = element('strong', { text: formatTime(round.answerTimeCs), 'data-testid': 'answer-time', dir: 'ltr' });
@@ -39,7 +40,32 @@ export function renderGame(root, { round, onComplete, onReset, audio }) {
     face.inert = !accessible;
     face.setAttribute('aria-hidden', String(!accessible));
   }
-  function frames() { return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); }
+  function frame() {
+    return new Promise(resolve => {
+      const id = requestAnimationFrame(() => { pendingFrames.delete(id); resolve(live); });
+      pendingFrames.set(id, resolve);
+    });
+  }
+  function stopTimerDisplay() { clearInterval(interval); interval = null; }
+  function updateTimerDisplay() {
+    stopTimerDisplay();
+    if (!live || phase !== 'question' || document.hidden) return;
+    const update = () => { time.textContent = formatTime(round.answerTimeCs); };
+    update(); interval = setInterval(update, 50);
+  }
+  function updateVisibility() {
+    updateTimerDisplay();
+    for (const animation of section.getAnimations({ subtree: true })) {
+      if (document.hidden) animation.pause();
+      else if (animation.playState === 'paused') animation.play();
+    }
+  }
+  document.addEventListener('visibilitychange', updateVisibility);
+  function animate(node, keyframes, options) {
+    const motion = node.animate(keyframes, options);
+    if (document.hidden) motion.pause();
+    return motion;
+  }
   async function turn(angle) {
     // A turn has no audio. Cancel any still-playing button or outcome notes.
     audio?.stop?.();
@@ -48,7 +74,7 @@ export function renderGame(root, { round, onComplete, onReset, audio }) {
     const from = card.style.transform || 'rotateX(0deg)';
     card.style.transform = `rotateX(${angle}deg)`;
     if (duration) {
-      const motion = card.animate([{ transform: from }, { transform: card.style.transform }], {
+      const motion = animate(card, [{ transform: from }, { transform: card.style.transform }], {
         duration, easing: 'cubic-bezier(.4,0,.2,1)'
       });
       await motion.finished.catch(() => {});
@@ -70,20 +96,21 @@ export function renderGame(root, { round, onComplete, onReset, audio }) {
     options.append(...buttons); front.replaceChildren(heading, options);
   }
   async function readyFront() {
-    await frames();
+    if (!live) return;
+    if (!await frame() || !await frame()) return;
     if (!live || !section.isConnected) return;
     accessibility(front, true);
     phase = 'question';
     buttons.forEach(button => { button.disabled = false; });
     round.showQuestion();
     front.querySelector('h1').focus({ preventScroll: true });
-    interval = setInterval(() => { if (phase === 'question') time.textContent = formatTime(round.answerTimeCs); }, 50);
+    updateTimerDisplay();
   }
   async function select(optionId, selected, event) {
     if (!live || phase !== 'question' || event.detail > 1) return;
     const answer = round.answer(optionId);
     if (!answer) return;
-    phase = 'flipping'; clearInterval(interval);
+    phase = 'flipping'; stopTimerDisplay();
     score.textContent = round.score; time.textContent = formatTime(round.answerTimeCs);
     buttons.forEach((button, index) => {
       button.disabled = true;
@@ -110,16 +137,16 @@ export function renderGame(root, { round, onComplete, onReset, audio }) {
       loadQuestion();
       await turn(0);
       if (!live) return;
-      back.classList.remove('reveal-ready'); back.replaceChildren();
+      back.replaceChildren();
       await readyFront();
     });
     back.replaceChildren(status, element('bdi', { className: 'reveal-answer', dir: 'ltr', text: correct.label }),
       arabicText('p', answer.explanation), next);
     await turn(180);
     if (!live) return;
-    accessibility(back, true); back.classList.add('reveal-ready');
+    accessibility(back, true);
     if (!reduced()) {
-      const fade = back.animate([{ opacity: .4 }, { opacity: 1 }], { duration: 120 });
+      const fade = animate(back, [{ opacity: .4 }, { opacity: 1 }], { duration: 120 });
       await fade.finished.catch(() => {});
     }
     if (!live) return;
@@ -130,13 +157,17 @@ export function renderGame(root, { round, onComplete, onReset, audio }) {
   loadQuestion();
   (async () => {
     if (!reduced()) {
-      const entrance = scene.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 180, easing: 'ease-out' });
+      const entrance = animate(scene, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 180, easing: 'ease-out' });
       await entrance.finished.catch(() => {});
     }
     await readyFront();
   })();
   function cleanup() {
-    live = false; clearInterval(interval);
+    if (!live) return;
+    live = false; stopTimerDisplay();
+    document.removeEventListener('visibilitychange', updateVisibility);
+    for (const [id, resolve] of pendingFrames) { cancelAnimationFrame(id); resolve(false); }
+    pendingFrames.clear();
     for (const animation of section.getAnimations({ subtree: true })) animation.cancel();
   }
   return cleanup;

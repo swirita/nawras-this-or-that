@@ -25,7 +25,7 @@ try {
     offset += png.length; return png;
   });
   for (let i = 0; i < images.length; i++) {
-    await writeFile(new URL(`../public/assets/branding/favicon-${images[i].size}.png`, import.meta.url), buffers[i]);
+    if (images[i].size <= 32) await writeFile(new URL(`../public/assets/branding/favicon-${images[i].size}.png`, import.meta.url), buffers[i]);
   }
   await writeFile(new URL('../public/favicon.ico', import.meta.url), Buffer.concat([header, ...buffers]));
 } finally { await browser.close(); }
