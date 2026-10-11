@@ -64,8 +64,10 @@ test('small screen, reduced motion, malformed data, fullscreen typing guard', as
   await expect(page.getByRole('textbox')).toHaveValue('f');
   expect(await page.evaluate(()=>!!document.fullscreenElement)).toBeFalsy();
   await page.getByRole('button',{name:'Leaderboard',exact:true}).click();
-  await page.keyboard.press('f'); expect(await page.evaluate(()=>!!document.fullscreenElement)).toBeTruthy();
-  await page.keyboard.press('f'); expect(await page.evaluate(()=>!!document.fullscreenElement)).toBeFalsy();
+  await page.keyboard.press('f');
+  await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(true);
+  await page.keyboard.press('f');
+  await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(false);
   await page.evaluate(key=>localStorage.setItem(key,'broken'),key); await page.reload();
   await page.getByRole('button',{name:'Leaderboard',exact:true}).click();
   await expect(page.getByText('Saved leaderboard could not be read.')).toBeVisible();
