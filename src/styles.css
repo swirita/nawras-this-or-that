@@ -17,16 +17,18 @@ button.gold:disabled { opacity: .65; filter: saturate(.65); }
 .landing { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 90px 24px 60px; text-align: center; }
 .logo { display: block; width: 290px; height: auto; object-fit: contain; }
 .game-title { margin: 12px 0 30px; line-height: 1.03; display: flex; flex-direction: column; }
-.english-title { font-size: clamp(56px, 6.6vw, 88px); letter-spacing: 2px; text-transform: uppercase; font-weight: 900; }
+.english-title { font-size: clamp(56px, 6.6vw, 88px); letter-spacing: 2px; text-transform: uppercase; font-weight: 900; text-shadow: 1px 1px 0 #fff, 2px 2px 0 #fff; }
 .arabic-title { color: #0781a1; font-size: clamp(62px, 7vw, 94px); font-weight: 800; text-shadow: 0 3px 0 #0b516c; line-height: 1.28; }
 .name-form { display: flex; flex-direction: column; align-items: center; gap: 12px; width: min(100%, 300px); }
 .name-form label { font-size: 12px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #355f78; }
 .name-form input { width: 100%; height: 48px; padding: 8px 14px; color: #102e49; background: #ffffffc9; border: 1px solid #83b4d0; border-radius: 10px; text-align: center; box-shadow: 0 5px 18px #568baa0b; }
 .start { min-width: 136px; margin-top: 1px; }
-.particles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
-.particles i { position: absolute; width: 7px; height: 7px; opacity: .22; background-image: var(--particle-image); background-size: 32px 32px; background-position: -9px -9px; animation: drift var(--duration) ease-in-out var(--delay) infinite alternate; }
-.particles i:nth-child(3n) { background-position: 0 0; width: 3px; height: 3px; background: #45b5d0; border-radius: 50%; }
-@keyframes drift { from { transform: translate3d(-5px, 14px, 0); } to { transform: translate3d(10px, -20px, 0); } }
+.particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.particles i { position: absolute; width: 7px; height: 7px; opacity: .16; background-image: var(--particle-image); background-size: 32px 32px; background-position: -9px -9px; animation: drift var(--duration) ease-in-out var(--delay) infinite alternate; }
+.particles i:nth-child(3n) { width: 4px; height: 4px; background: #82c7e9; border-radius: 50%; }
+.particles i:nth-child(5n) { width: 5px; height: 5px; background-position: -1px -9px; }
+.particles i:nth-child(7n) { width: 3px; height: 3px; background: #40bbcf; border-radius: 50%; }
+@keyframes drift { 0% { transform: translate3d(-8px, 16px, 0); opacity: .08; } 50% { opacity: .22; } 100% { transform: translate3d(12px, -24px, 0); opacity: .12; } }
 .leaderboard-screen { width: min(100%, 980px); margin: auto; min-height: 100svh; padding: 30px 32px 32px; display: flex; flex-direction: column; align-items: center; }
 .leaderboard-header { width: 100%; position: relative; display: flex; justify-content: center; align-items: center; min-height: 82px; }
 .leaderboard-header .logo { width: 230px; }
@@ -55,6 +57,9 @@ dialog { max-width: min(430px, calc(100% - 32px)); padding: 30px; color: #102e49
 dialog::backdrop { background: #23476a40; backdrop-filter: blur(5px); }
 dialog h2 { margin: 0 0 14px; font-size: 25px; } dialog p { line-height: 1.6; margin: 0 0 24px; color: #49667d; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 12px; }
+.dialog-close { position: absolute; right: 10px; top: 10px; padding: 0; min-height: 32px; width: 32px; font-size: 23px; box-shadow: none; }
+#reset-dialog { padding-top: 44px; text-align: center; }
+.reset-actions { justify-content: center; margin-top: 24px; flex-wrap: wrap; }
 .modal-open { overflow: hidden; } .modal-open .particles i { animation-play-state: paused; }
 .modal-open .leaderboard-panel { overflow: hidden; }
 .question-content { text-align: start; } .question-content bdi { unicode-bidi: isolate; }
@@ -71,17 +76,19 @@ dialog h2 { margin: 0 0 14px; font-size: 25px; } dialog p { line-height: 1.6; ma
 .reveal-answer { display: block; font-size: clamp(30px, 4vw, 44px); font-weight: 800; color: #087b98; margin: 14px 0 20px; }
 .card-back .next { align-self: center; margin-top: 10px; }
 .mute-button { position: fixed; right: 18px; bottom: 18px; z-index: 3; padding: 8px; width: 42px; min-height: 42px; font-size: 18px; background: #ffffffb8; }
-.game-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 20px; }
+.game-header { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 20px; }
+.reset-button { position: absolute; left: 0; bottom: -42px; min-height: 32px; padding: 6px 13px; font-size: 13px; }
 .game-header .logo, .results-screen > .logo { width: 210px; margin: auto; }
 .results-screen > .logo { margin: 0 auto; }
 .game-stat { display: flex; flex-direction: column; gap: 6px; font-variant-numeric: tabular-nums; }
-.game-stat:last-child { text-align: right; } .game-stat span, .result-metrics span { color: #49667d; font-size: 13px; font-weight: 700; }
+.game-stat:nth-child(3) { text-align: right; } .game-stat span, .result-metrics span { color: #49667d; font-size: 13px; font-weight: 700; }
 .game-stat strong { font-size: 25px; } .progress { text-align: center; color: #49667d; font-weight: 700; margin: 8px 0 18px; }
 .question-panel { padding: 22px 30px; border: 1px solid #aac8df; border-radius: 18px; background: #ffffffa6; box-shadow: 0 16px 48px #44799e16; }
 .question-panel h1 { min-height: 116px; padding: 15px 0; text-align: center; font-size: clamp(27px, 3vw, 38px); line-height: 1.55; margin: 0 0 20px; }
 .answer-options { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.answer-button { min-height: 92px; font-size: 27px; border-color: #95b8d8; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
-.answer-button:disabled { opacity: 1; cursor: default; } .answer-marker { min-height: 20px; font-size: 14px; direction: rtl; }
+.answer-button { min-height: 92px; font-size: 27px; border-color: #95b8d8; display: grid; place-items: center; text-align: center; line-height: 1.3; }
+.answer-button bdi { margin: 0; padding: 0; max-width: 100%; overflow-wrap: anywhere; }
+.answer-button:disabled { opacity: 1; cursor: default; }
 .correct-answer, .correct-answer:disabled { background: #d9f3e8; border: 2px solid #2b8b70; color: #165540; }
 .wrong-answer, .wrong-answer:disabled { background: #fbe5e7; border: 2px solid #bd6776; color: #8b3145; }
 .feedback { min-height: 204px; padding-top: 20px; text-align: center; }

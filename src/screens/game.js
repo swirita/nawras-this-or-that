@@ -13,7 +13,7 @@ export function arabicText(tag, text, attributes = {}) {
   return node;
 }
 
-export function renderGame(root, { round, onComplete, audio }) {
+export function renderGame(root, { round, onComplete, onReset, audio }) {
   let live = true, phase = 'entering', interval, question, buttons = [];
   const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const score = element('strong', { text: round.score, 'data-testid': 'score' });
@@ -25,8 +25,12 @@ export function renderGame(root, { round, onComplete, audio }) {
   front.inert = true; back.inert = true;
   const card = element('div', { className: 'flip-card' }, [front, back]);
   const scene = element('div', { className: 'question-panel card-scene' }, [card]);
+  const reset = element('button', { className: 'reset-button', type: 'button', text: 'Reset' });
+  reset.addEventListener('click', event => {
+    if (live && event.detail <= 1) onReset(reset);
+  });
   const section = element('section', { className: 'game-screen', tabindex: '-1' }, [
-    element('header', { className: 'game-header' }, [stat('Score', score), logo(), stat('Answer Time', time)]),
+    element('header', { className: 'game-header' }, [stat('Score', score), logo(), stat('Answer Time', time), reset]),
     progress, element('div', { className: 'card-space' }, [scene])
   ]);
   root.replaceChildren(section);
@@ -55,7 +59,7 @@ export function renderGame(root, { round, onComplete, audio }) {
     const options = element('div', { className: 'answer-options' });
     buttons = question.options.map(option => {
       const button = element('button', { className: 'answer-button', type: 'button', 'data-option-id': option.id }, [
-        element('bdi', { dir: 'ltr', text: option.label }), element('span', { className: 'answer-marker' })
+        element('bdi', { dir: 'ltr', text: option.label })
       ]);
       button.disabled = true;
       button.addEventListener('click', event => select(option.id, button, event));
@@ -100,7 +104,6 @@ export function renderGame(root, { round, onComplete, audio }) {
       if (round.result) {
         audio?.play('complete'); cleanup(); onComplete(); return;
       }
-      audio?.play('flip');
       // Replace the hidden front while the upright back is still on screen.
       loadQuestion();
       await turn(0);
@@ -130,6 +133,9 @@ export function renderGame(root, { round, onComplete, audio }) {
     }
     await readyFront();
   })();
-  function cleanup() { live = false; clearInterval(interval); }
+  function cleanup() {
+    live = false; clearInterval(interval);
+    for (const animation of section.getAnimations({ subtree: true })) animation.cancel();
+  }
   return cleanup;
 }

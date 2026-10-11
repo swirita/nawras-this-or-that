@@ -22,14 +22,17 @@ function harness(initial = false) {
   const audio=createAudio({storage:{getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v)},contextFactory:()=>{instances++;return context;}});
   return {audio,events,data,instances:()=>instances};
 }
-test('audio initializes once; correct phrase schedules click, air and rising notes sequentially',()=>{
+test('audio initializes once; correct phrase retains click and rising notes without flip noise',()=>{
   const {audio,events,instances}=harness();
   audio.init();audio.init();audio.play('correct');
   assert.equal(instances(),1);
   const starts=events.filter(e=>e.kind!=='stop');
-  assert.deepEqual(starts.map(e=>e.kind),['tone','air','tone','tone']);
-  assert.ok(starts[2].time>=starts[1].time+.18);
-  assert.ok(starts[3].time>=starts[2].time+.10);
+  assert.deepEqual(starts.map(e=>e.kind),['tone','tone','tone']);
+  assert.ok(starts[1].time>=starts[0].time+.045);
+  assert.ok(starts[2].time>=starts[1].time+.10);
+  const beforeFlip=events.length;
+  audio.play('flip');
+  assert.equal(events.length,beforeFlip);
   audio.play('complete');
   assert.ok(events.some(e=>e.kind==='stop' && e.time===undefined));
 });

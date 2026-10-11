@@ -11,6 +11,7 @@ import { createAudio } from './ui/audio.js';
 
 const root = document.querySelector('#app');
 const dialog = document.querySelector('#clear-dialog');
+const resetDialog = document.querySelector('#reset-dialog');
 // Access itself can throw when browser storage is disabled.
 const storage = { getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value), removeItem: key => localStorage.removeItem(key) };
 const store = createLeaderboardStore(storage);
@@ -33,8 +34,13 @@ document.addEventListener('click', event => {
 });
 let name = '', screen = 'landing', currentPlayerId = null, returnFocus;
 let player = null, round = null, completedResult = null, saveError = null, leaderboardReturn = 'landing';
+let cleanupGame = null, resetReturnFocus = null;
+function stopGamePresentation() {
+  cleanupGame?.(); cleanupGame = null;
+}
 
 function landing() {
+  stopGamePresentation();
   screen = 'landing';
   renderLanding(root, { name, questionsReady: hasReviewedSet(questions),
     onName: value => { name = value; }, onStart: value => {
@@ -44,15 +50,43 @@ function landing() {
     }, onLeaderboard: () => { leaderboardReturn = 'landing'; leaderboard(); } });
 }
 function startRound() {
+  stopGamePresentation();
   screen = 'game'; completedResult = null; saveError = null;
   round = createRound(player, questions);
-  renderGame(root, { round, audio, onComplete: () => {
+  cleanupGame = renderGame(root, { round, audio, onReset: trigger => {
+    if (screen !== 'game' || resetDialog.open) return;
+    resetReturnFocus = trigger;
+    resetDialog.showModal();
+    document.body.classList.add('modal-open');
+    document.querySelector('#close-reset').focus();
+  }, onComplete: () => {
     completedResult = round.result;
     const outcome = round.saveCompleted(store.saveCompletedResult);
     saveError = outcome?.error;
     results();
   } });
 }
+document.querySelector('#close-reset').addEventListener('click', () => resetDialog.close());
+resetDialog.addEventListener('keydown', event => {
+  if (event.key !== 'Tab') return;
+  const first = document.querySelector('#close-reset'), last = document.querySelector('#reset-round');
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+});
+resetDialog.addEventListener('close', () => {
+  document.body.classList.remove('modal-open');
+  if (resetReturnFocus?.isConnected) resetReturnFocus.focus({ preventScroll: true });
+});
+document.querySelector('#reset-home').addEventListener('click', () => {
+  if (!resetDialog.open || screen !== 'game') return;
+  resetDialog.close();
+  name = ''; player = null; currentPlayerId = null; round = null; completedResult = null;
+  landing(); document.querySelector('#player-name').focus();
+});
+document.querySelector('#reset-round').addEventListener('click', () => {
+  if (!resetDialog.open || screen !== 'game') return;
+  resetDialog.close(); startRound();
+});
 function results() {
   screen = 'results';
   const data = store.read();
@@ -111,7 +145,7 @@ document.addEventListener('keydown', event => {
   if (event.repeat && event.target.closest('button') && ['Enter', ' '].includes(event.key)) event.preventDefault();
 });
 document.addEventListener('keydown', async event => {
-  if (event.key.toLowerCase() !== 'f' || event.repeat || event.ctrlKey || event.metaKey || event.altKey || dialog.open) return;
+  if (event.key.toLowerCase() !== 'f' || event.repeat || event.ctrlKey || event.metaKey || event.altKey || dialog.open || resetDialog.open) return;
   if (event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
   try {
     if (document.fullscreenElement) await document.exitFullscreen();
@@ -122,7 +156,7 @@ const particles = document.querySelector('.particles');
 particles.style.setProperty('--particle-image', `url("${assetUrl('pixel-particles.png')}")`);
 for (let i = 0; i < 22; i++) {
   const particle = element('i');
-  particle.style.cssText = `left:${(i * 43 + 8) % 100}%;top:${(i * 29 + 11) % 100}%;--delay:-${i * 1.7}s;--duration:${14 + i % 9}s`;
+  particle.style.cssText = `left:${(i * 43 + 8) % 100}%;top:${(i * 29 + 11) % 100}%;--delay:-${i * 1.7}s;--duration:${22 + i % 11}s`;
   particles.append(particle);
 }
 landing();

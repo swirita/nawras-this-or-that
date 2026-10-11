@@ -24,23 +24,13 @@ export function createAudio({ storage, contextFactory = () => new (window.AudioC
     voices.push(source); source.onended = () => { source.disconnect(); gain.disconnect(); };
     source.start(start); source.stop(start + duration);
   }
-  function airy(start) {
-    const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * .18), context.sampleRate);
-    const samples = buffer.getChannelData(0);
-    for (let i = 0; i < samples.length; i++) samples[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / samples.length);
-    const source = context.createBufferSource(), filter = context.createBiquadFilter(), gain = context.createGain();
-    source.buffer = buffer; filter.type = 'bandpass'; filter.frequency.value = 1800; filter.Q.value = .5; gain.gain.value = .024;
-    source.connect(filter); filter.connect(gain); gain.connect(context.destination);
-    voices.push(source); source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
-    source.start(start);
-  }
   // Each action owns one short, sequential phrase. New actions cancel old voices.
   function play(kind) {
+    if (kind === 'flip') return;
     stop();
     if (muted || !context || context.state !== 'running') return;
     const start = context.currentTime + .005;
     tone(520, start, .045, .018);
-    if (kind === 'flip' || kind === 'correct' || kind === 'wrong') airy(start + .05);
     if (kind === 'correct') {
       tone(660, start + .24, .10); tone(880, start + .35, .15);
     } else if (kind === 'wrong') tone(240, start + .24, .16, .026);
