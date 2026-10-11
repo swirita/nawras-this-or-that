@@ -86,7 +86,7 @@ dialog h2 { margin: 0 0 14px; font-size: 25px; } dialog p { line-height: 1.6; ma
 .question-panel h1 { min-height: 116px; padding: 15px 0; text-align: center; font-size: clamp(27px, 3vw, 38px); line-height: 1.55; margin: 0 0 20px; }
 .answer-options { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .answer-button { min-height: 92px; font-size: 27px; border-color: #95b8d8; display: grid; place-items: center; text-align: center; line-height: 1.3; }
-.answer-button bdi { margin: 0; padding: 0; max-width: 100%; overflow-wrap: anywhere; }
+.answer-button bdi { margin: 0; padding: 0; max-width: 100%; overflow-wrap: anywhere; text-box-trim: trim-both; text-box-edge: cap alphabetic; }
 .answer-button:disabled { opacity: 1; cursor: default; }
 .correct-answer, .correct-answer:disabled { background: #d9f3e8; border: 2px solid #2b8b70; color: #165540; }
 .wrong-answer, .wrong-answer:disabled { background: #fbe5e7; border: 2px solid #bd6776; color: #8b3145; }

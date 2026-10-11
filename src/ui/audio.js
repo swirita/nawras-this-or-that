@@ -26,7 +26,7 @@ export function createAudio({ storage, contextFactory = () => new (window.AudioC
   }
   // Each action owns one short, sequential phrase. New actions cancel old voices.
   function play(kind) {
-    if (kind === 'flip') return;
+    if (!['click', 'correct', 'wrong', 'complete'].includes(kind)) return;
     stop();
     if (muted || !context || context.state !== 'running') return;
     const start = context.currentTime + .005;
@@ -45,5 +45,5 @@ export function createAudio({ storage, contextFactory = () => new (window.AudioC
     if (!muted && context) { init(); play('click'); }
     return muted;
   }
-  return { init, play, toggle, get muted() { return muted; } };
+  return { init, play, stop, toggle, get muted() { return muted; } };
 }

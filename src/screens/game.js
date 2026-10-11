@@ -41,6 +41,8 @@ export function renderGame(root, { round, onComplete, onReset, audio }) {
   }
   function frames() { return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); }
   async function turn(angle) {
+    // A turn has no audio. Cancel any still-playing button or outcome notes.
+    audio?.stop?.();
     accessibility(front, false); accessibility(back, false);
     const duration = reduced() ? 0 : 550;
     const from = card.style.transform || 'rotateX(0deg)';
@@ -113,7 +115,6 @@ export function renderGame(root, { round, onComplete, onReset, audio }) {
     });
     back.replaceChildren(status, element('bdi', { className: 'reveal-answer', dir: 'ltr', text: correct.label }),
       arabicText('p', answer.explanation), next);
-    audio?.play(answer.correct ? 'correct' : 'wrong');
     await turn(180);
     if (!live) return;
     accessibility(back, true); back.classList.add('reveal-ready');
@@ -123,6 +124,7 @@ export function renderGame(root, { round, onComplete, onReset, audio }) {
     }
     if (!live) return;
     phase = 'reveal'; next.disabled = false;
+    audio?.play(answer.correct ? 'correct' : 'wrong');
     status.focus({ preventScroll: true });
   }
   loadQuestion();
