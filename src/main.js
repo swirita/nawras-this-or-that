@@ -91,6 +91,7 @@ function results() {
   screen = 'results';
   const data = store.read();
   renderResults(root, { result: completedResult, results: data.results, error: saveError || data.error,
+    onClear: openClear,
     onPlayAgain: () => { if (screen === 'results') startRound(); },
     onNextPlayer: () => { name = ''; player = null; currentPlayerId = null; round = null; completedResult = null; landing(); document.querySelector('#player-name').focus(); },
     onLeaderboard: () => { leaderboardReturn = 'results'; leaderboard(); }
@@ -102,19 +103,22 @@ function leaderboard(options = {}) {
   renderLeaderboard(root, { ...store.read(), currentPlayerId, onBack: () => {
     if (leaderboardReturn === 'results') results();
     else { landing(); document.querySelector('.top-right').focus(); }
-  }, onClear: trigger => {
-    returnFocus = trigger;
-    document.querySelector('#clear-error').hidden = true;
-    dialog.showModal();
-    document.body.classList.add('modal-open');
-    document.querySelector('#cancel-clear').focus();
-  } });
+  }, onClear: openClear });
+}
+function openClear(trigger) {
+  if (dialog.open) return;
+  returnFocus = trigger;
+  document.querySelector('#clear-error').hidden = true;
+  dialog.showModal();
+  document.body.classList.add('modal-open');
+  document.querySelector('#cancel-clear').focus();
 }
 document.querySelector('#cancel-clear').addEventListener('click', () => dialog.close());
+document.querySelector('#close-clear').addEventListener('click', () => dialog.close());
 dialog.addEventListener('keydown', event => {
   if (event.key !== 'Tab') return;
   const first = document.querySelector('#cancel-clear');
-  const last = document.querySelector('#confirm-clear');
+  const last = document.querySelector('#close-clear');
   if (event.shiftKey && document.activeElement === first) {
     event.preventDefault(); last.focus();
   } else if (!event.shiftKey && document.activeElement === last) {
@@ -122,18 +126,19 @@ dialog.addEventListener('keydown', event => {
   }
 });
 document.querySelector('#confirm-clear').addEventListener('click', () => {
+  if (!dialog.open) return;
   const { error } = store.clear();
   if (error) {
     const message = document.querySelector('#clear-error');
     message.textContent = error; message.hidden = false; return;
   }
   dialog.close();
-  leaderboard();
-  document.querySelector('.back').focus();
+  if (screen === 'results') results();
+  else { leaderboard(); document.querySelector('.back').focus(); }
 });
 dialog.addEventListener('close', () => {
   document.body.classList.remove('modal-open');
-  if (returnFocus?.isConnected && !returnFocus.disabled) returnFocus.focus();
+  if (returnFocus?.isConnected && !returnFocus.disabled) returnFocus.focus({ preventScroll: true });
 });
 window.addEventListener('storage', event => {
   if (!dialog.open && (event.key === null || event.key?.startsWith('nawras-this-or-that:leaderboard:'))) {
@@ -154,7 +159,7 @@ document.addEventListener('keydown', async event => {
 });
 const particles = document.querySelector('.particles');
 particles.style.setProperty('--particle-image', `url("${assetUrl('pixel-particles.png')}")`);
-for (let i = 0; i < 22; i++) {
+for (let i = 0; i < 40; i++) {
   const particle = element('i');
   particle.style.cssText = `left:${(i * 43 + 8) % 100}%;top:${(i * 29 + 11) % 100}%;--delay:-${i * 1.7}s;--duration:${22 + i % 11}s`;
   particles.append(particle);

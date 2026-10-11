@@ -22,8 +22,11 @@ async function complete(page, wrongFirst = false) {
 test('reset popup closes safely, continues timing and preserves question/reveal and scores',async({page})=>{
   await start(page);
   const before=await page.locator('.card-scene').boundingBox();
+  const control=await page.getByRole('button',{name:'Reset / Stop',exact:true}).boundingBox();
+  expect(Math.abs(control.x + control.width / 2 - before.x - before.width / 2)).toBeLessThan(1);
+  expect(control.y).toBeGreaterThan(before.y + before.height);
   const id=await page.locator('[data-question-id]').getAttribute('data-question-id');
-  await page.getByRole('button',{name:'Reset',exact:true}).click();
+  await page.getByRole('button',{name:'Reset / Stop',exact:true}).click();
   await expect(page.getByRole('dialog',{name:'Reset game?'})).toBeVisible();
   await expect(page.getByRole('button',{name:'Close reset popup'})).toBeFocused();
   expect(await page.locator('.card-scene').boundingBox()).toEqual(before);
@@ -33,18 +36,18 @@ test('reset popup closes safely, continues timing and preserves question/reveal 
   await page.waitForTimeout(150);
   await expect(page.getByTestId('answer-time')).not.toHaveText(time);
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('button',{name:'Reset',exact:true})).toBeFocused();
+  await expect(page.getByRole('button',{name:'Reset / Stop',exact:true})).toBeFocused();
   expect(await page.locator('[data-question-id]').getAttribute('data-question-id')).toBe(id);
   await page.locator('.answer-button').first().click();
   await expect(page.getByRole('button',{name:'Next',exact:true})).toBeEnabled();
   const stopped=await page.getByTestId('answer-time').textContent();
-  await page.getByRole('button',{name:'Reset',exact:true}).click();
+  await page.getByRole('button',{name:'Reset / Stop',exact:true}).click();
   await page.screenshot({path:'test-results/reset-popup.png'});
   await page.getByRole('button',{name:'Close reset popup'}).click();
   await expect(page.getByRole('button',{name:'Next',exact:true})).toBeEnabled();
   expect(await page.getByTestId('answer-time').textContent()).toBe(stopped);
   expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key)).toEqual(seeded);
-  await page.getByRole('button',{name:'Reset',exact:true}).click();
+  await page.getByRole('button',{name:'Reset / Stop',exact:true}).click();
   await page.getByRole('button',{name:'Reset Game',exact:true}).dblclick();
   await expect(page.getByTestId('progress')).toHaveText('1 / 10');
   await expect(page.getByTestId('score')).toHaveText('0');
@@ -57,7 +60,7 @@ test('reset popup closes safely, continues timing and preserves question/reveal 
   const player=first.results.find(r=>r.name==='Reset player');
   await page.getByRole('button',{name:'Play Again'}).click();
   await expect(page.locator('.answer-button').first()).toBeEnabled();
-  await page.getByRole('button',{name:'Reset',exact:true}).click();
+  await page.getByRole('button',{name:'Reset / Stop',exact:true}).click();
   await page.getByRole('button',{name:'Reset Game',exact:true}).click();
   await expect(page.locator('.answer-button').first()).toBeEnabled();
   await complete(page);
@@ -89,13 +92,13 @@ test('Home Screen abandons unanswered or revealed rounds, clears name and preser
       await page.locator('.answer-button').first().click();
       await expect(page.getByRole('button',{name:'Next',exact:true})).toBeEnabled();
     }
-    await page.getByRole('button',{name:'Reset',exact:true}).click();
+    await page.getByRole('button',{name:'Reset / Stop',exact:true}).click();
     await page.getByRole('button',{name:'Home Screen'}).click();
     await expect(page.getByRole('textbox')).toHaveValue('');
     await expect(page.getByRole('button',{name:'Start',exact:true})).toBeDisabled();
     expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key)).toEqual(seeded);
     expect(await page.locator('.particles').count()).toBe(1);
-    expect(await page.locator('.particles i').count()).toBe(22);
+    expect(await page.locator('.particles i').count()).toBe(40);
   }
 });
 test('centered wrapped labels, particles, title shadow, square favicon and silent Next flip',async({page})=>{
@@ -107,7 +110,7 @@ test('centered wrapped labels, particles, title shadow, square favicon and silen
     };
   });
   await page.goto('./');
-  expect(await page.locator('.english-title').evaluate(el=>getComputedStyle(el).textShadow)).toBe('rgb(255, 255, 255) 1px 1px 0px, rgb(255, 255, 255) 2px 2px 0px');
+  expect(await page.locator('.english-title').evaluate(el=>getComputedStyle(el).textShadow)).toBe('rgb(255, 255, 255) 0px 1px 0px, rgb(255, 255, 255) 0px 2px 0px');
   const favicon=await page.locator('link[rel="icon"]').getAttribute('href');
   expect(favicon).toContain('/nawras-this-or-that/assets/branding/nawras-small.png');
   expect((await page.request.get(favicon)).ok()).toBeTruthy();

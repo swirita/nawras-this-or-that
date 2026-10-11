@@ -26,12 +26,17 @@ export function createLeaderboardPanel({ results, currentPlayerId }) {
   return panel;
 }
 
+export function createClearButton(results, onClear) {
+  const clear = element('button', { text: 'Clear Leaderboard', className: 'clear-button', type: 'button' });
+  clear.disabled = results.length === 0;
+  clear.addEventListener('click', event => { if (event.detail <= 1) onClear(clear); });
+  return clear;
+}
+
 export function renderLeaderboard(root, { results, error, currentPlayerId, onBack, onClear }) {
   const back = element('button', { text: '← Back', className: 'back' });
   back.addEventListener('click', onBack);
-  const clear = element('button', { text: 'Clear Leaderboard', className: 'clear-button' });
-  clear.disabled = results.length === 0;
-  clear.addEventListener('click', () => onClear(clear));
+  const clear = createClearButton(results, onClear);
   const section = element('section', { className: 'leaderboard-screen' }, [
     element('div', { className: 'leaderboard-header' }, [back, logo()]),
     element('h1', { text: 'Leaderboard', tabindex: '-1' }), createLeaderboardPanel({ results, currentPlayerId }), clear

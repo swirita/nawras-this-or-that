@@ -25,13 +25,13 @@ export function renderGame(root, { round, onComplete, onReset, audio }) {
   front.inert = true; back.inert = true;
   const card = element('div', { className: 'flip-card' }, [front, back]);
   const scene = element('div', { className: 'question-panel card-scene' }, [card]);
-  const reset = element('button', { className: 'reset-button', type: 'button', text: 'Reset' });
+  const reset = element('button', { className: 'reset-button', type: 'button', text: 'Reset / Stop' });
   reset.addEventListener('click', event => {
     if (live && event.detail <= 1) onReset(reset);
   });
   const section = element('section', { className: 'game-screen', tabindex: '-1' }, [
-    element('header', { className: 'game-header' }, [stat('Score', score), logo(), stat('Answer Time', time), reset]),
-    progress, element('div', { className: 'card-space' }, [scene])
+    element('header', { className: 'game-header' }, [stat('Score', score), logo(), stat('Answer Time', time)]),
+    progress, element('div', { className: 'card-space' }, [scene, reset])
   ]);
   root.replaceChildren(section);
   section.focus({ preventScroll: true });

@@ -1,8 +1,8 @@
 import { element, logo } from '../ui/dom.js';
 import { formatTime } from '../core/leaderboard.js';
-import { createLeaderboardPanel } from './leaderboard.js';
+import { createLeaderboardPanel, createClearButton } from './leaderboard.js';
 
-export function renderResults(root, { result, results, error, onPlayAgain, onNextPlayer, onLeaderboard }) {
+export function renderResults(root, { result, results, error, onPlayAgain, onNextPlayer, onLeaderboard, onClear }) {
   const best = results.find(row => row.playerId === result.playerId);
   const title = element('h1', { text: 'Round complete', tabindex: '-1' });
   const button = (text, action, className) => {
@@ -20,6 +20,7 @@ export function renderResults(root, { result, results, error, onPlayAgain, onNex
       ? `Leaderboard shows your best: ${best.score} / 100 · ${formatTime(best.answerTimeCs)}`
       : best ? 'Leaderboard · Your best result' : 'Leaderboard' }),
     createLeaderboardPanel({ results, currentPlayerId: result.playerId }),
+    createClearButton(results, onClear),
     element('div', { className: 'results-actions' }, [
       button('Play Again', onPlayAgain, 'gold'), button('Next Player', onNextPlayer), button('Full Leaderboard', onLeaderboard)
     ])

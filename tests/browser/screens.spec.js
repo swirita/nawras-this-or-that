@@ -37,6 +37,7 @@ test('persistence, safe names, tied top five, sticky headings and confirmation',
   await expect(page.getByRole('button',{name:'Cancel',exact:true})).toBeFocused();
   expect(await panel.boundingBox()).toEqual(before);
   await page.keyboard.press('Tab'); await expect(page.getByRole('button',{name:'Clear',exact:true})).toBeFocused();
+  await page.keyboard.press('Tab'); await expect(page.getByRole('button',{name:'Close clear popup'})).toBeFocused();
   await page.keyboard.press('Tab'); await expect(page.getByRole('button',{name:'Cancel',exact:true})).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).not.toBeVisible();

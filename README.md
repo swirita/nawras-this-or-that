@@ -31,9 +31,9 @@ The question card centers in the available space below the header and progress. 
 
 No sound assets were supplied. Lightweight Web Audio phrases provide a soft click, gentle correct/wrong tones and completion chime without music. Card flips and return transitions are silent; the airy effect has been removed. Each audible action cancels any preceding phrase; sounds within a phrase play sequentially. Audio initializes from Start. The corner sound icon remembers mute in the separate `nawras-this-or-that:muted:v1` key; clearing scores leaves this preference intact.
 
-The gameplay header's Reset control opens a matching modal with Home Screen, Reset Game, close X and Escape. Home Screen abandons the current round and clears name entry; Reset Game abandons it and starts a newly shuffled round with the same player and a new round ID. Neither action saves the unfinished round or changes saved scores. Closing the popup keeps question/reveal state. Unanswered timing continues while it is open. The modal blocks background interaction, contains keyboard focus and freezes scrolling/particles without shifting layout.
+The centered Reset / Stop control below the gameplay card opens a matching modal with Home Screen, Reset Game, close X and Escape. Home Screen abandons the current round and clears name entry; Reset Game abandons it and starts a newly shuffled round with the same player and a new round ID. Neither action saves the unfinished round or changes saved scores. Closing the popup keeps question/reveal state. Unanswered timing continues while it is open. The modal blocks background interaction, contains keyboard focus and freezes scrolling/particles without shifting layout.
 
-Answer labels are grid-centered without an empty feedback/icon row, with safe wrapping. A single shared particle layer uses the supplied sprite plus small pale-blue/cyan dots and occasional lavender sprites, with slow drift and fading. It stays behind every screen, ignores clicks and respects reduced motion. The landing NAWRAS title has a crisp 1–2 px white shadow; branding images are unchanged. The square `nawras-small.png` favicon uses a base-aware URL.
+Answer labels are grid-centered without an empty feedback/icon row, with safe wrapping. A single shared layer of 40 more visible, gently fading particles uses the supplied sprite plus small pale-blue/cyan dots and occasional lavender sprites, with slow drift and fading. It stays behind every screen, ignores clicks and respects reduced motion. The landing NAWRAS title has a crisp bottom-only 1–2 px white shadow; branding images are unchanged. The square `nawras-small.png` favicon uses a base-aware URL.
 
 ## Timing and completion
 
@@ -48,6 +48,8 @@ Play Again retains the player ID/name and starts a newly shuffled round with res
 The dedicated key is `nawras-this-or-that:leaderboard:v2`, containing `version: 2` and `results`. Records contain `playerId`, `resultId`, `name`, `score` and integer `answerTimeCs`.
 
 Existing v1 millisecond data is preserved: it is read when v2 is absent and rounded to centiseconds. The next completed save writes all valid best results to v2; the legacy key remains until Clear. Clear affects only this game's v1/v2 keys, with the existing Cancel/Clear confirmation, focus loop, Escape support, frozen background and stable layout.
+
+Clear Leaderboard is available on both results and the full leaderboard, and is disabled when empty. Cancel, Escape and the close button preserve scores. Clearing from results keeps the completed round's metrics visible without saving it again; the leaderboard remains empty through navigation and refresh until a new round completes. The shared panel fits short lists and caps long lists with vertical scrolling, using one table for aligned sticky headings and rows without a reserved empty scrollbar gutter.
 
 A player's best score wins, then shorter time. Equal score/time shares competition ranks (1, 2, 2, 4). All ranks 1–5, including ties at fifth, are highlighted. Malformed records and blocked browser storage are handled safely. Scores survive browser refresh. Names are rendered as text, never HTML. No demo scores are included.
 
