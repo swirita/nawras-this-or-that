@@ -7,10 +7,11 @@ test('1366×768 laptop layout stays stable through feedback; smaller screens scr
   for(let i=0;i<10;i++){
     const id=await page.locator('[data-question-id]').getAttribute('data-question-id');
     const q=questions.find(q=>q.id===id);
-    const options=page.locator('.answer-options');
-    const before=await options.boundingBox();
+    const options=page.locator('.card-scene');
     await expect(page.locator(`[data-option-id="${q.correctOptionId}"]`)).toBeEnabled();
+    const before=await options.boundingBox();
     await page.locator(`[data-option-id="${q.correctOptionId}"]`).click();
+    await expect(page.getByRole('button',{name:'Next',exact:true})).toBeEnabled();
     expect(await options.boundingBox()).toEqual(before);
     expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBeTruthy();
     expect(await page.locator('.feedback p bdi').evaluateAll(nodes=>nodes.every(n=>n.dir==='ltr'))).toBeTruthy();

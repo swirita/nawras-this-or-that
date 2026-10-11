@@ -7,12 +7,30 @@ import { renderLeaderboard } from './screens/leaderboard.js';
 import { renderGame } from './screens/game.js';
 import { renderResults } from './screens/results.js';
 import { assetUrl, element } from './ui/dom.js';
+import { createAudio } from './ui/audio.js';
 
 const root = document.querySelector('#app');
 const dialog = document.querySelector('#clear-dialog');
 // Access itself can throw when browser storage is disabled.
 const storage = { getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value), removeItem: key => localStorage.removeItem(key) };
 const store = createLeaderboardStore(storage);
+const audio = createAudio({ storage });
+const mute = element('button', { className: 'mute-button', type: 'button' });
+function updateMute() {
+  mute.textContent = audio.muted ? '🔇' : '🔊';
+  mute.setAttribute('aria-label', audio.muted ? 'Unmute sound' : 'Mute sound');
+  mute.setAttribute('aria-pressed', String(audio.muted));
+}
+updateMute();
+document.body.append(mute);
+mute.addEventListener('click', event => {
+  if (event.detail > 1) return;
+  audio.toggle(); updateMute();
+});
+document.addEventListener('click', event => {
+  const button = event.target.closest('button');
+  if (button && !button.disabled && !button.matches('.start, .answer-button, .next, .mute-button') && event.detail <= 1) audio.play('click');
+});
 let name = '', screen = 'landing', currentPlayerId = null, returnFocus;
 let player = null, round = null, completedResult = null, saveError = null, leaderboardReturn = 'landing';
 
@@ -21,13 +39,14 @@ function landing() {
   renderLanding(root, { name, questionsReady: hasReviewedSet(questions),
     onName: value => { name = value; }, onStart: value => {
       if (screen !== 'landing') return;
+      audio.init(); audio.play('click');
       player = createPlayer(value); currentPlayerId = player.playerId; startRound();
     }, onLeaderboard: () => { leaderboardReturn = 'landing'; leaderboard(); } });
 }
 function startRound() {
   screen = 'game'; completedResult = null; saveError = null;
   round = createRound(player, questions);
-  renderGame(root, { round, onComplete: () => {
+  renderGame(root, { round, audio, onComplete: () => {
     completedResult = round.result;
     const outcome = round.saveCompleted(store.saveCompletedResult);
     saveError = outcome?.error;

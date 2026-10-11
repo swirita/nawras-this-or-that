@@ -13,65 +13,123 @@ export function arabicText(tag, text, attributes = {}) {
   return node;
 }
 
-export function renderGame(root, { round, onComplete }) {
-  const question = round.question;
-  let live = true, locked = false, advanced = false, interval;
+export function renderGame(root, { round, onComplete, audio }) {
+  let live = true, phase = 'entering', interval, question, buttons = [];
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const score = element('strong', { text: round.score, 'data-testid': 'score' });
   const time = element('strong', { text: formatTime(round.answerTimeCs), 'data-testid': 'answer-time', dir: 'ltr' });
   const stat = (label, value) => element('div', { className: 'game-stat' }, [element('span', { text: label }), value]);
-  const heading = arabicText('h1', question.prompt, { tabindex: '-1', 'data-question-id': question.id });
-  const options = element('div', { className: 'answer-options' });
-  const feedback = element('div', { className: 'feedback', 'aria-live': 'polite', 'aria-atomic': 'true' });
-  const next = element('button', { className: 'gold next', text: 'Next', type: 'button' });
-  const buttons = question.options.map(option => {
-    const button = element('button', { className: 'answer-button', type: 'button', 'data-option-id': option.id }, [
-      element('bdi', { dir: 'ltr', text: option.label }), element('span', { className: 'answer-marker' })
-    ]);
-    button.disabled = true;
-    button.addEventListener('click', event => {
-      if (!live || locked || event.detail > 1) return;
-      const answer = round.answer(option.id);
-      if (!answer) return;
-      locked = true;
-      clearInterval(interval);
-      score.textContent = round.score; time.textContent = formatTime(round.answerTimeCs);
-      for (const [index, other] of buttons.entries()) {
-        other.disabled = true;
-        const correct = question.options[index].id === answer.correctOptionId;
-        const wrong = other === button && !answer.correct;
-        if (correct || wrong) {
-          other.classList.add(correct ? 'correct-answer' : 'wrong-answer');
-          other.querySelector('.answer-marker').textContent = correct ? '✓ صحيح' : '✕ اختيارك';
-        }
-      }
-      feedback.replaceChildren(arabicText('h2', answer.correct ? '✓ إجابة صحيحة' : '✕ إجابة غير صحيحة', { className: answer.correct ? 'correct-message' : 'wrong-message' }),
-        arabicText('p', answer.explanation), next);
-    });
-    return button;
-  });
-  options.append(...buttons);
-  next.addEventListener('click', event => {
-    if (!live || advanced || !locked || event.detail > 1) return;
-    advanced = true; next.disabled = true;
-    round.next();
-    cleanup();
-    if (round.result) onComplete(); else renderNext();
-  });
-  const section = element('section', { className: 'game-screen' }, [
+  const progress = element('p', { className: 'progress', dir: 'ltr', 'data-testid': 'progress' });
+  const front = element('div', { className: 'card-face card-front', 'aria-hidden': 'true' });
+  const back = element('div', { className: 'card-face card-back feedback', 'aria-hidden': 'true' });
+  front.inert = true; back.inert = true;
+  const card = element('div', { className: 'flip-card' }, [front, back]);
+  const scene = element('div', { className: 'question-panel card-scene' }, [card]);
+  const section = element('section', { className: 'game-screen', tabindex: '-1' }, [
     element('header', { className: 'game-header' }, [stat('Score', score), logo(), stat('Answer Time', time)]),
-    element('p', { className: 'progress', text: `${round.progress} / 10`, dir: 'ltr', 'data-testid': 'progress' }),
-    element('div', { className: 'question-panel' }, [heading, options, feedback])
+    progress, element('div', { className: 'card-space' }, [scene])
   ]);
   root.replaceChildren(section);
-  heading.focus({ preventScroll: true });
-  // Two frames commit the static question before interaction and its clock begin.
-  requestAnimationFrame(() => requestAnimationFrame(() => {
+  section.focus({ preventScroll: true });
+  function accessibility(face, accessible) {
+    face.inert = !accessible;
+    face.setAttribute('aria-hidden', String(!accessible));
+  }
+  function frames() { return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); }
+  async function turn(angle) {
+    accessibility(front, false); accessibility(back, false);
+    const duration = reduced() ? 0 : 550;
+    const from = card.style.transform || 'rotateX(0deg)';
+    card.style.transform = `rotateX(${angle}deg)`;
+    if (duration) {
+      const motion = card.animate([{ transform: from }, { transform: card.style.transform }], {
+        duration, easing: 'cubic-bezier(.4,0,.2,1)'
+      });
+      await motion.finished.catch(() => {});
+    }
+  }
+  function loadQuestion() {
+    question = round.question;
+    progress.textContent = `${round.progress} / 10`;
+    const heading = arabicText('h1', question.prompt, { tabindex: '-1', 'data-question-id': question.id });
+    const options = element('div', { className: 'answer-options' });
+    buttons = question.options.map(option => {
+      const button = element('button', { className: 'answer-button', type: 'button', 'data-option-id': option.id }, [
+        element('bdi', { dir: 'ltr', text: option.label }), element('span', { className: 'answer-marker' })
+      ]);
+      button.disabled = true;
+      button.addEventListener('click', event => select(option.id, button, event));
+      return button;
+    });
+    options.append(...buttons); front.replaceChildren(heading, options);
+  }
+  async function readyFront() {
+    await frames();
     if (!live || !section.isConnected) return;
+    accessibility(front, true);
+    phase = 'question';
     buttons.forEach(button => { button.disabled = false; });
     round.showQuestion();
-    interval = setInterval(() => { if (live && !locked) time.textContent = formatTime(round.answerTimeCs); }, 50);
-  }));
+    front.querySelector('h1').focus({ preventScroll: true });
+    interval = setInterval(() => { if (phase === 'question') time.textContent = formatTime(round.answerTimeCs); }, 50);
+  }
+  async function select(optionId, selected, event) {
+    if (!live || phase !== 'question' || event.detail > 1) return;
+    const answer = round.answer(optionId);
+    if (!answer) return;
+    phase = 'flipping'; clearInterval(interval);
+    score.textContent = round.score; time.textContent = formatTime(round.answerTimeCs);
+    buttons.forEach((button, index) => {
+      button.disabled = true;
+      const correct = question.options[index].id === answer.correctOptionId;
+      if (correct || (button === selected && !answer.correct)) button.classList.add(correct ? 'correct-answer' : 'wrong-answer');
+    });
+    section.focus({ preventScroll: true });
+    const correct = question.options.find(option => option.id === answer.correctOptionId);
+    const status = arabicText('h2', answer.correct ? '✓ إجابة صحيحة' : '✕ إجابة غير صحيحة', {
+      tabindex: '-1', className: answer.correct ? 'correct-message' : 'wrong-message'
+    });
+    const next = element('button', { className: 'gold next', text: 'Next', type: 'button' });
+    next.disabled = true;
+    next.addEventListener('click', async event => {
+      if (!live || phase !== 'reveal' || event.detail > 1) return;
+      phase = 'advancing'; next.disabled = true;
+      section.focus({ preventScroll: true });
+      accessibility(back, false);
+      round.next();
+      if (round.result) {
+        audio?.play('complete'); cleanup(); onComplete(); return;
+      }
+      audio?.play('flip');
+      // Replace the hidden front while the upright back is still on screen.
+      loadQuestion();
+      await turn(0);
+      if (!live) return;
+      back.classList.remove('reveal-ready'); back.replaceChildren();
+      await readyFront();
+    });
+    back.replaceChildren(status, element('bdi', { className: 'reveal-answer', dir: 'ltr', text: correct.label }),
+      arabicText('p', answer.explanation), next);
+    audio?.play(answer.correct ? 'correct' : 'wrong');
+    await turn(180);
+    if (!live) return;
+    accessibility(back, true); back.classList.add('reveal-ready');
+    if (!reduced()) {
+      const fade = back.animate([{ opacity: .4 }, { opacity: 1 }], { duration: 120 });
+      await fade.finished.catch(() => {});
+    }
+    if (!live) return;
+    phase = 'reveal'; next.disabled = false;
+    status.focus({ preventScroll: true });
+  }
+  loadQuestion();
+  (async () => {
+    if (!reduced()) {
+      const entrance = scene.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 180, easing: 'ease-out' });
+      await entrance.finished.catch(() => {});
+    }
+    await readyFront();
+  })();
   function cleanup() { live = false; clearInterval(interval); }
-  function renderNext() { renderGame(root, { round, onComplete }); }
   return cleanup;
 }

@@ -30,6 +30,7 @@ async function play(page, mode = 'correct') {
     const time = await page.getByTestId('answer-time').textContent();
     await page.waitForTimeout(80);
     expect(await page.getByTestId('answer-time').textContent()).toBe(time);
+    await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeEnabled();
     if (i === 0) {
       const panel = await page.locator('.question-panel').boundingBox();
       expect(panel.height).toBeLessThan(650);
@@ -42,6 +43,7 @@ async function play(page, mode = 'correct') {
 }
 
 test('round, wrong answers, double clicks, replay best, next-player identity and persistence', async ({ page }) => {
+  test.setTimeout(120000);
   await page.goto('./');
   await page.getByRole('textbox').fill('  Same name  ');
   await page.getByRole('button', { name: 'Start', exact: true }).dblclick();
@@ -86,6 +88,7 @@ test('round, wrong answers, double clicks, replay best, next-player identity and
 });
 
 test('unfinished rounds are not saved; current best scrolls only the panel; background counts', async ({ page, context }) => {
+  test.setTimeout(120000);
   await page.goto('./');
   await page.evaluate(key => localStorage.setItem(key, JSON.stringify({version:2, results:Array.from({length:20}, (_,i) => ({
     playerId:`seed${i}`, resultId:`round${i}`, name:`Test ${i}`, score:100, answerTimeCs:0

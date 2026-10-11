@@ -27,9 +27,13 @@ The game uses Arabic RTL text and LTR `bdi` isolation for English labels, number
 
 F toggles fullscreen outside typing controls; Escape keeps normal browser/dialog behavior. Smaller screens can scroll; reduced-motion preferences are respected.
 
+The question card centers in the available space below the header and progress. Its front contains the question/options; its back contains status, the prominent correct answer, explanation and Next. A 550 ms vertical flip and a 120 ms reveal fade finish before Next becomes interactive. Hidden faces are inert and excluded from screen readers. Next replaces the hidden front before flipping back, so the old question never flashes. The fixed card footprint stays stable; smaller screens can scroll. Reduced motion removes entrance, flip and fade animations.
+
+No sound assets were supplied. Lightweight Web Audio phrases provide a soft click, airy flip, gentle correct/wrong tones and completion chime without music. Each action cancels any preceding phrase; sounds within a phrase play sequentially. Audio initializes from Start. The corner sound icon remembers mute in the separate `nawras-this-or-that:muted:v1` key; clearing scores leaves this preference intact.
+
 ## Timing and completion
 
-`src/core/round.js` contains the independent engine. The UI enables answer buttons and calls `showQuestion()` after two rendering frames. Timing uses monotonic `performance.now()`, stops immediately on selection, and excludes feedback, Next waiting and screen transitions. Active-question time continues during background tab switches, so changing tabs grants no free thinking time.
+`src/core/round.js` contains the independent engine. The UI enables answer buttons and calls `showQuestion()` after entrance/return animations finish and two rendering frames commit the new front. Timing uses monotonic `performance.now()`, stops immediately on selection, and excludes feedback, Next waiting and screen transitions. Active-question time continues during background tab switches, so changing tabs grants no free thinking time.
 
 Final cumulative time is rounded once to integer centiseconds (`answerTimeCs`). Display and ranking both use this value, with seconds to two decimals. A unique `resultId` identifies each round. The engine calls completed-result persistence once; incomplete rounds and results re-renders never save. Storage failures are shown on results; the completed round is not retried automatically.
 
