@@ -57,6 +57,8 @@ A player's best score wins, then shorter time. Equal score/time shares competiti
 
 Original assets and design files are preserved. `nawras-name.png` is the logo; `nawras-small.png` is the source for the 16/32/48-pixel PNG favicons and multi-size `favicon.ico`; `pixel-particles.png` supplies ambient particles. Regenerate favicon variants with `node scripts/generate-favicon.mjs` after installing Chromium for Playwright. All URLs use Vite's Pages base. The supplied Slasher screenshot guides the icy grid, glow, translucent panels and matching buttons. Wordle/Memory references and custom font files were not supplied; typography uses local system fonts.
 
+HTML icon links use root-relative public paths so Vite applies the repository base once in both development and production. The favicon regression check verifies image content types and decoding on both servers; an HTTP 200 alone can hide an HTML fallback from a bad icon path.
+
 ## GitHub and Pages
 
 Existing origin: https://github.com/swirita/nawras-this-or-that
