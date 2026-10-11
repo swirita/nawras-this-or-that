@@ -36,7 +36,7 @@ test('repeated reset, home and replay retain one timer and no accumulating liste
     await expect.poll(() => page.evaluate(() => resources().intervals)).toBe(playing ? 1 : 0);
     const current = await page.evaluate(() => resources());
     expect(current.visibility).toBe(baseline.visibility + (playing ? 1 : 0));
-    expect(current.frames).toBe(0);
+    await expect.poll(() => page.evaluate(() => resources().frames)).toBe(0);
     expect(current.click).toBe(baseline.click); expect(current.keydown).toBe(baseline.keydown);
     await expect(page.locator('.particles')).toHaveCount(1);
     await expect(page.locator('.particles i')).toHaveCount(40);
