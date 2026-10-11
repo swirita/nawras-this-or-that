@@ -55,7 +55,7 @@ A player's best score wins, then shorter time. Equal score/time shares competiti
 
 ## Assets and design
 
-Original assets and design files are preserved. `nawras-name.png` is the logo; `nawras-small.png` the favicon; `pixel-particles.png` supplies ambient particles. All URLs use Vite's Pages base. The supplied Slasher screenshot guides the icy grid, glow, translucent panels and matching buttons. Wordle/Memory references and custom font files were not supplied; typography uses local system fonts.
+Original assets and design files are preserved. `nawras-name.png` is the logo; `nawras-small.png` is the source for the 16/32/48-pixel PNG favicons and multi-size `favicon.ico`; `pixel-particles.png` supplies ambient particles. Regenerate favicon variants with `node scripts/generate-favicon.mjs` after installing Chromium for Playwright. All URLs use Vite's Pages base. The supplied Slasher screenshot guides the icy grid, glow, translucent panels and matching buttons. Wordle/Memory references and custom font files were not supplied; typography uses local system fonts.
 
 ## GitHub and Pages
 

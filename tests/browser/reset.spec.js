@@ -111,8 +111,8 @@ test('centered wrapped labels, particles, title shadow, square favicon and silen
   });
   await page.goto('./');
   expect(await page.locator('.english-title').evaluate(el=>getComputedStyle(el).textShadow)).toBe('rgb(255, 255, 255) 0px 1px 0px, rgb(255, 255, 255) 0px 2px 0px');
-  const favicon=await page.locator('link[rel="icon"]').getAttribute('href');
-  expect(favicon).toContain('/nawras-this-or-that/assets/branding/nawras-small.png');
+  const favicon=await page.locator('link[rel="icon"][sizes="32x32"]').getAttribute('href');
+  expect(favicon).toContain('/nawras-this-or-that/assets/branding/favicon-32.png');
   expect((await page.request.get(favicon)).ok()).toBeTruthy();
   await page.getByRole('textbox').fill('Centered');await page.getByRole('button',{name:'Start',exact:true}).click();
   await expect(page.locator('.answer-button').first()).toBeEnabled();
